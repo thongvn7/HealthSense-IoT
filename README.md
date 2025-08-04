@@ -1,6 +1,36 @@
-# Physics Final Project
+# Heart Rate & SpO2 Monitoring System
 
-A full-stack web application built with Next.js frontend and FastAPI backend, integrated with Firebase Realtime Database for IoT device data collection and command management.
+A smart health monitoring system that uses ESP32 to collect heart rate data (Heart Rate) and blood oxygen concentration (SpO2), integrates AI to analyze and provide personalized health advice. The system is built with a modern full-stack architecture, including Next.js frontend, FastAPI backend and Firebase Realtime Database.
+
+## 🩺 Project Overview
+
+This project aims to create a comprehensive health monitoring solution that allows:
+- **Real-time data collection**: ESP32 measures and transmits Heart Rate and SpO2 data
+- **Smart analytics**: AI processes data to assess health status
+- **Personalized advice**: Provides recommendations and alerts based on analyzed data
+- **Continuous monitoring**: Tracks health trends over time
+
+## 🔬 Main functions
+
+### 📡 Data collection
+- Measures Heart Rate with high accuracy
+- Measures SpO2 in real time
+- Securely transmits data from ESP32 to the cloud via REST API
+
+### 🤖 AI analytics
+- Processes and analyzes physiological data
+- Detects abnormalities in health indicators
+- Evaluates trends and patterns personal health
+
+### 💡 Smart advice
+- Data-driven lifestyle recommendations
+- Early warning of potential health issues
+- Activity and rest recommendations
+
+### 📊 Data visualization
+- Dashboard to track health metrics
+- Trend charts over time
+- Regular health reports
 
 ## 🏗️ Architecture
 
