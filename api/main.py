@@ -6,6 +6,7 @@ from firebase_admin import credentials, initialize_app
 from mangum import Mangum
 from .records import router as records_router
 from .command import router as command_router
+from .auth import router as auth_router
 
 # Khởi Firebase Admin (1 lần)
 cred = credentials.Certificate(os.environ["GOOGLE_APPLICATION_CREDENTIALS"])
@@ -20,6 +21,7 @@ app.add_middleware(
 # Gắn router
 app.include_router(records_router)
 app.include_router(command_router)
+app.include_router(auth_router)
 
 # Handler cho Vercel
 handler = Mangum(app)

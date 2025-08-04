@@ -42,10 +42,12 @@ This project aims to create a comprehensive health monitoring solution that allo
 
 ## 📋 Features
 
+- **User Authentication**: Firebase Authentication with email/password and Google sign-in
 - **Device Registration & Authentication**: Secure device identification using device ID and secret
 - **Data Collection**: RESTful endpoints for IoT devices to submit sensor data
 - **Command Management**: Send commands and patterns to registered devices
 - **Real-time Database**: Firebase integration for persistent data storage
+- **Personal Dashboard**: User-specific health monitoring dashboard
 - **CORS Support**: Cross-origin requests enabled for web client access
 
 ## 🚀 Getting Started
@@ -80,7 +82,9 @@ This project aims to create a comprehensive health monitoring solution that allo
 4. **Configure Firebase**
    - Create a Firebase project at [Firebase Console](https://console.firebase.google.com)
    - Enable Realtime Database
+   - Enable Authentication with Email/Password and Google providers
    - Generate a service account key and save as `serviceAccountKey.json`
+   - Get your Firebase config from Project Settings > General > Your apps
    - Set up environment variables (see Environment Variables section)
 
 ### Environment Variables
@@ -88,8 +92,21 @@ This project aims to create a comprehensive health monitoring solution that allo
 Create a `.env.local` file in the root directory:
 
 ```env
+# Firebase Client Configuration (for frontend)
+NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key_here
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_DATABASE_URL=https://your-project-id-default-rtdb.firebaseio.com/
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+
+# Firebase Admin Configuration (for backend)
 GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json
 FIREBASE_DB_URL=https://your-project-id-default-rtdb.firebaseio.com/
+
+# API Configuration
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3000
 ```
 
 ### Development
@@ -105,10 +122,19 @@ FIREBASE_DB_URL=https://your-project-id-default-rtdb.firebaseio.com/
    ```
 
 3. **Access the application**
-   - Frontend: http://localhost:3000
+   - Frontend: http://localhost:3000 (Landing page)
+   - Dashboard: http://localhost:3000/dashboard (After login)
+   - Device Setup: http://localhost:3000/device-setup (For ESP32 registration)
    - API Documentation: http://localhost:8001/docs
 
 ## 📡 API Endpoints
+
+### Authentication API
+
+**GET** `/api/auth/verify`
+- Verify Firebase ID token
+- Headers: `Authorization: Bearer <firebase_id_token>`
+- Response: User information and verification status
 
 ### Records API
 
@@ -117,6 +143,18 @@ FIREBASE_DB_URL=https://your-project-id-default-rtdb.firebaseio.com/
 - Headers: `X-Device-Id`, `X-Device-Secret`
 - Body: JSON payload with sensor data
 - Response: `{"status": "ok", "key": "record_id"}`
+
+**GET** `/api/records/`
+- Get user's health records
+- Headers: `Authorization: Bearer <firebase_id_token>`
+- Query: `limit` (optional, default: 1000)
+- Response: Array of health records
+
+**POST** `/api/records/device/register`
+- Register ESP32 device to user account
+- Headers: `Authorization: Bearer <firebase_id_token>`
+- Body: `{"device_id": "ESP32_001", "device_secret": "secret_key"}`
+- Response: `{"status": "ok", "message": "Device registered successfully"}`
 
 ### Command API
 

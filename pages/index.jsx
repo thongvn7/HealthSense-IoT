@@ -1,19 +1,31 @@
-import { useEffect, useState } from 'react'
-import axios from 'axios'
+import { useEffect } from 'react'
+import { useRouter } from 'next/router'
+import { useAuth } from '../contexts/AuthContext'
 
-export default function Home() {
-  const [msg, setMsg] = useState('Loading...')
+export default function HomePage() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
-    axios.post('/api/records', { test: 'hello from Next.js' })
-      .then(res => setMsg(JSON.stringify(res.data, null, 2)))
-      .catch(err => setMsg('Error: ' + err.message))
-  }, [])
+    if (!loading) {
+      if (user) {
+        router.push('/dashboard')
+      } else {
+        router.push('/landing')
+      }
+    }
+  }, [user, loading, router])
 
+  // Show loading spinner while determining auth state
   return (
-    <div style={{ padding: 20, fontFamily: 'sans-serif' }}>
-      <h1>Test FastAPI ↔ Next.js</h1>
-      <pre>{msg}</pre>
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      height: '100vh',
+      fontFamily: 'sans-serif'
+    }}>
+      <div>Đang tải...</div>
     </div>
   )
 }
