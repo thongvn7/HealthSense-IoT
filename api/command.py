@@ -11,9 +11,11 @@ def verify_device(x_device_id: str = Header(...), x_device_secret: str = Header(
     return x_device_id
 
 @router.get("/{device_id}")
-async def get_command(device_id: str, _=Depends(verify_device)):
+async def get_command(device_id: str, verified_id: str = Depends(verify_device)):
+    if device_id != verified_id:
+        raise HTTPException(403, "Forbidden")
     cmd = db.reference(f"/commands/{device_id}").get()
-    return cmd or {"action":None,"pattern":[]}
+    return cmd or {"action": None, "pattern": []}
 
 @router.post("/")
 async def post_command(payload: dict, device_id: str = Depends(verify_device)):
