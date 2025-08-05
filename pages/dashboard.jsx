@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useAdmin } from '../contexts/AdminContext'
 import { useRouter } from 'next/router'
 import { ref, onValue, query, orderByChild, equalTo } from 'firebase/database'
 import { database } from '../lib/firebase'
@@ -28,6 +29,7 @@ ChartJS.register(
 
 export default function Dashboard() {
   const { user, loading, logout } = useAuth()
+  const { isAdmin } = useAdmin()
   const router = useRouter()
   const [records, setRecords] = useState([])
   const [range, setRange] = useState(24) // hours
@@ -198,6 +200,14 @@ export default function Dashboard() {
             >
               Thiết bị
             </button>
+            {isAdmin && (
+              <button 
+                onClick={() => router.push('/admin')}
+                className="btn-admin"
+              >
+                Admin Panel
+              </button>
+            )}
             <button onClick={handleLogout} className="btn-logout">
               Đăng xuất
             </button>
@@ -345,7 +355,7 @@ export default function Dashboard() {
           color: #666;
         }
 
-        .btn-logout, .btn-setup {
+        .btn-logout, .btn-setup, .btn-admin {
           border: none;
           padding: 0.5rem 1rem;
           border-radius: 6px;
@@ -367,6 +377,16 @@ export default function Dashboard() {
           background: #28a745;
           color: white;
           margin-right: 0.5rem;
+        }
+        
+        .btn-admin {
+          background: #6f42c1;
+          color: white;
+          margin-right: 0.5rem;
+        }
+        
+        .btn-admin:hover {
+          background: #5a32a3;
         }
 
         .btn-setup:hover {
