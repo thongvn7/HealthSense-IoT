@@ -16,6 +16,8 @@ import {
   Legend
 } from 'chart.js'
 import 'chartjs-adapter-date-fns'
+import AnimatedElement from '../components/AnimatedElement'
+import { useAnime } from '../hooks/useAnime.jsx'
 
 ChartJS.register(
   TimeScale,
@@ -34,6 +36,7 @@ export default function Dashboard() {
   const [records, setRecords] = useState([])
   const [range, setRange] = useState(24) // hours
   const [dataLoading, setDataLoading] = useState(true)
+  const { animate } = useAnime()
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -83,6 +86,18 @@ export default function Dashboard() {
       console.error('Logout error:', error)
     }
   }
+
+  // Animate stats when data loads
+  useEffect(() => {
+    if (!dataLoading && records.length > 0) {
+      animate('.stat-value', {
+        innerHTML: [0, (el) => el.getAttribute('data-value')],
+        duration: 1500,
+        easing: 'easeOutExpo',
+        round: 1
+      })
+    }
+  }, [dataLoading, records, animate])
 
   if (loading) {
     return (
@@ -191,8 +206,10 @@ export default function Dashboard() {
       {/* Header */}
       <header className="header">
         <div className="container">
-          <h1>💓 Dashboard Sức khỏe</h1>
-          <div className="user-info">
+          <AnimatedElement animation="fadeInLeft" className="header-title">
+            <h1>💓 Dashboard Sức khỏe</h1>
+          </AnimatedElement>
+          <AnimatedElement animation="fadeInRight" className="user-info">
             <span>Xin chào, {user.email}</span>
             <button 
               onClick={() => router.push('/device-setup')}
@@ -211,28 +228,28 @@ export default function Dashboard() {
             <button onClick={handleLogout} className="btn-logout">
               Đăng xuất
             </button>
-          </div>
+          </AnimatedElement>
         </div>
       </header>
 
       <div className="container">
         {/* Stats Cards */}
         <div className="stats-grid">
-          <div className="stat-card">
+          <AnimatedElement animation="fadeInUp" delay={100} className="stat-card">
             <div className="stat-icon">❤️</div>
             <div className="stat-content">
-              <div className="stat-value">{avgBpm} BPM</div>
+              <div className="stat-value" data-value={avgBpm}>0</div> BPM
               <div className="stat-label">Nhịp tim trung bình</div>
             </div>
-          </div>
+          </AnimatedElement>
           
-          <div className="stat-card">
+          <AnimatedElement animation="fadeInUp" delay={200} className="stat-card">
             <div className="stat-icon">🫁</div>
             <div className="stat-content">
-              <div className="stat-value">{avgSpo2}%</div>
+              <div className="stat-value" data-value={avgSpo2}>0</div>%
               <div className="stat-label">SpO₂ trung bình</div>
             </div>
-          </div>
+          </AnimatedElement>
           
           <div className="stat-card">
             <div className="stat-icon">📊</div>

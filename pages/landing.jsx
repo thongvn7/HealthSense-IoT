@@ -1,14 +1,16 @@
 // pages/landing.jsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import AuthModal from '../components/Auth/AuthModal'
 import { useRouter } from 'next/router'
-import { useEffect } from 'react'
+import AnimatedElement from '../components/AnimatedElement'
+import { useAnime } from '../hooks/useAnime.jsx'
 
 export default function Landing() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const { user } = useAuth()
   const router = useRouter()
+  const { animate } = useAnime()
 
   // Redirect to dashboard if already logged in
   useEffect(() => {
@@ -16,6 +18,20 @@ export default function Landing() {
       router.push('/dashboard')
     }
   }, [user, router])
+
+  // Animate health stats on mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      animate('.stat-value', {
+        innerHTML: [0, (el) => el.getAttribute('data-value')],
+        duration: 2000,
+        easing: 'easeOutExpo',
+        round: 1
+      })
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [animate])
 
   if (user) {
     return <div>Đang chuyển hướng...</div>
@@ -26,24 +42,24 @@ export default function Landing() {
       {/* Header */}
       <header className="header">
         <div className="container">
-          <div className="logo">
+          <AnimatedElement animation="fadeInLeft" className="logo">
             <h2>💓 HealthMonitor</h2>
-          </div>
-          <nav className="nav">
+          </AnimatedElement>
+          <AnimatedElement animation="fadeInRight" className="nav">
             <button 
               className="btn-login"
               onClick={() => setShowAuthModal(true)}
             >
               Đăng nhập
             </button>
-          </nav>
+          </AnimatedElement>
         </div>
       </header>
 
       {/* Hero Section */}
       <section className="hero">
         <div className="container">
-          <div className="hero-content">
+          <AnimatedElement animation="fadeInUp" delay={200} className="hero-content">
             <h1>Theo dõi sức khỏe thông minh với AI</h1>
             <p className="hero-subtitle">
               Hệ thống giám sát nhịp tim và SpO2 tiên tiến với ESP32, 
@@ -60,54 +76,56 @@ export default function Landing() {
                 Tìm hiểu thêm
               </button>
             </div>
-          </div>
-          <div className="hero-image">
+          </AnimatedElement>
+          <AnimatedElement animation="scaleIn" delay={400} className="hero-image">
             <div className="device-mockup">
               <div className="screen">
                 <div className="health-stats">
                   <div className="stat">
                     <span className="stat-label">Nhịp tim</span>
-                    <span className="stat-value">72 BPM</span>
+                    <span className="stat-value" data-value="72">0</span> BPM
                   </div>
                   <div className="stat">
                     <span className="stat-label">SpO₂</span>
-                    <span className="stat-value">98%</span>
+                    <span className="stat-value" data-value="98">0</span>%
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          </AnimatedElement>
         </div>
       </section>
 
       {/* Features Section */}
       <section className="features">
         <div className="container">
-          <h2>Tính năng nổi bật</h2>
+          <AnimatedElement animation="fadeInUp" trigger="onScroll" className="section-title">
+            <h2>Tính năng nổi bật</h2>
+          </AnimatedElement>
           <div className="features-grid">
-            <div className="feature-card">
+            <AnimatedElement animation="fadeInUp" delay={100} trigger="onScroll" className="feature-card">
               <div className="feature-icon">📡</div>
               <h3>Thu thập dữ liệu thời gian thực</h3>
               <p>ESP32 đo và truyền dữ liệu nhịp tim và SpO2 với độ chính xác cao</p>
-            </div>
+            </AnimatedElement>
             
-            <div className="feature-card">
+            <AnimatedElement animation="fadeInUp" delay={200} trigger="onScroll" className="feature-card">
               <div className="feature-icon">🤖</div>
               <h3>Phân tích AI thông minh</h3>
               <p>Xử lý và phân tích dữ liệu sinh lý, phát hiện bất thường trong chỉ số sức khỏe</p>
-            </div>
+            </AnimatedElement>
             
-            <div className="feature-card">
+            <AnimatedElement animation="fadeInUp" delay={300} trigger="onScroll" className="feature-card">
               <div className="feature-icon">💡</div>
               <h3>Lời khuyên cá nhân hóa</h3>
               <p>Đưa ra khuyến nghị lối sống dựa trên dữ liệu và cảnh báo sớm các vấn đề sức khỏe</p>
-            </div>
+            </AnimatedElement>
             
-            <div className="feature-card">
+            <AnimatedElement animation="fadeInUp" delay={400} trigger="onScroll" className="feature-card">
               <div className="feature-icon">📊</div>
               <h3>Trực quan hóa dữ liệu</h3>
               <p>Dashboard theo dõi chỉ số sức khỏe với biểu đồ xu hướng theo thời gian</p>
-            </div>
+            </AnimatedElement>
           </div>
         </div>
       </section>
@@ -115,7 +133,7 @@ export default function Landing() {
       {/* CTA Section */}
       <section className="cta">
         <div className="container">
-          <div className="cta-content">
+          <AnimatedElement animation="fadeInUp" trigger="onScroll" className="cta-content">
             <h2>Sẵn sàng theo dõi sức khỏe của bạn?</h2>
             <p>Tham gia ngay để trải nghiệm hệ thống giám sát sức khỏe thông minh</p>
             <button 
@@ -124,7 +142,7 @@ export default function Landing() {
             >
               Đăng ký miễn phí
             </button>
-          </div>
+          </AnimatedElement>
         </div>
       </section>
 
@@ -345,12 +363,39 @@ export default function Landing() {
           border-radius: 16px;
           text-align: center;
           box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-          transition: all 0.3s;
+          transition: all 0.3s ease;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .feature-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+          transition: left 0.5s;
+        }
+
+        .feature-card:hover::before {
+          left: 100%;
         }
 
         .feature-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 20px 25px rgba(0,0,0,0.1);
+          transform: translateY(-8px) scale(1.02);
+          box-shadow: 0 25px 35px rgba(0,0,0,0.15);
+        }
+
+        .feature-icon {
+          font-size: 3rem;
+          margin-bottom: 1rem;
+          transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover .feature-icon {
+          transform: scale(1.1) rotate(5deg);
         }
 
         .feature-icon {
