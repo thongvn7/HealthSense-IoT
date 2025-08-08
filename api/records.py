@@ -1,6 +1,7 @@
 # api/records.py
 from fastapi import APIRouter, Request, Depends, HTTPException, Header
-from firebase_admin import db
+from firebase_admin import db, exceptions as fa_exceptions
+import time
 from .auth import verify_firebase_token
 from typing import Optional
 
@@ -36,7 +37,19 @@ async def get_records(
     
     # Query records for this user
     records_ref = db.reference("/records")
-    records = records_ref.order_by_child("userId").equal_to(user_id).limit_to_last(limit).get()
+    try:
+        records = (
+            records_ref
+            .order_by_child("userId")
+            .equal_to(user_id)
+            .limit_to_last(limit)
+            .get()
+        )
+    except fa_exceptions.InvalidArgumentError:
+        # Fallback when RTDB index is not defined in local/test environments
+        all_records = records_ref.get() or {}
+        filtered = {k: v for k, v in all_records.items() if isinstance(v, dict) and v.get("userId") == user_id}
+        records = filtered
     
     if not records:
         return []
@@ -50,7 +63,8 @@ async def get_records(
     # Sort by timestamp descending
     records_list.sort(key=lambda x: x.get("ts", 0), reverse=True)
     
-    return records_list
+    # Trim to requested limit after sorting (in case of fallback path)
+    return records_list[:limit]
 
 @router.post("/device/register")
 async def register_device(req: Request, user = Depends(verify_firebase_token)):
@@ -68,7 +82,7 @@ async def register_device(req: Request, user = Depends(verify_firebase_token)):
     db.reference(f"/devices/{device_id}").set({
         "secret": device_secret,
         "user_id": user_id,
-        "registered_at": db.ServerValue.TIMESTAMP
+        "registered_at": int(time.time() * 1000)
     })
     
     return {"status": "ok", "message": "Device registered successfully"}

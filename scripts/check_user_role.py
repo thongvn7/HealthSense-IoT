@@ -7,15 +7,24 @@ Usage:
 
 Example:
     python scripts/check_user_role.py user@example.com
+
+Loads environment variables from `.env.local` for local development.
 """
 
 import os
 import sys
 import argparse
 import json
+from pathlib import Path
+
+from dotenv import load_dotenv
 from firebase_admin import credentials, initialize_app, auth
 
 def main():
+    # Load env from project root `.env.local` (best-effort)
+    project_root = Path(__file__).resolve().parents[1]
+    load_dotenv(project_root / ".env.local")
+
     parser = argparse.ArgumentParser(description='Check the role of a specific user in Firebase Auth')
     parser.add_argument('email', help='Email address of the user to check')
     args = parser.parse_args()
