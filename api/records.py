@@ -77,12 +77,25 @@ async def register_device(req: Request, user = Depends(verify_firebase_token)):
         raise HTTPException(400, "Missing device_id or device_secret")
     
     user_id = user.get("uid")
-    
-    # Save device registration
-    db.reference(f"/devices/{device_id}").set({
-        "secret": device_secret,
-        "user_id": user_id,
-        "registered_at": int(time.time() * 1000)
-    })
-    
+    device_ref = db.reference(f"/devices/{device_id}")
+    existing = device_ref.get()
+
+    # Enforce: device must pre-exist and have a secret provisioned by the system
+    if not existing:
+        raise HTTPException(404, "Device not found. Please contact support.")
+
+    # Secret must match exactly
+    if existing.get("secret") != device_secret:
+        raise HTTPException(401, "Invalid device credentials")
+
+    # Do not allow binding to a different user if already registered
+    if existing.get("user_id") and existing.get("user_id") != user_id:
+        raise HTTPException(409, "Device already registered to another user")
+
+    # Bind to current user; do not overwrite secret
+    update_payload = {"user_id": user_id}
+    if not existing.get("registered_at"):
+        update_payload["registered_at"] = int(time.time() * 1000)
+    device_ref.update(update_payload)
+
     return {"status": "ok", "message": "Device registered successfully"}

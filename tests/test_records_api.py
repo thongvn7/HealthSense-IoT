@@ -66,6 +66,13 @@ def test_records_flow_creates_and_cleans_up(client: TestClient, override_user):
 
     record_key = None
     try:
+        # Provision device in RTDB (simulating server-side provisioning)
+        print(f"[tests] Provisioning device {device_id} with secret...")
+        db.reference(f"/devices/{device_id}").set({
+            "secret": device_secret,
+            # note: no user_id yet; user will bind via register endpoint
+        })
+
         print(f"[tests] Registering device {device_id} ...")
         # 1) Register device to the fake user
         resp = client.post(
