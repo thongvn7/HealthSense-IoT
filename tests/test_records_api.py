@@ -89,8 +89,8 @@ def test_records_flow_creates_and_cleans_up(client: TestClient, override_user):
         assert device.get("secret") == device_secret
         print("[tests] Verified device in DB:", device)
 
-        # 2) Post a record using device credentials
-        payload = {"ts": int(time.time() * 1000), "hr": 72, "note": "pytest"}
+        # 2) Post a record using device credentials (server stamps ts)
+        payload = {"spo2": 98, "hr": 72, "note": "pytest"}
         headers = {"x-device-id": device_id, "x-device-secret": device_secret}
         resp = client.post("/api/records/", headers=headers, json=payload)
         assert resp.status_code == 200, resp.text
@@ -103,7 +103,11 @@ def test_records_flow_creates_and_cleans_up(client: TestClient, override_user):
         assert saved is not None
         assert saved.get("userId") == override_user["uid"]
         assert saved.get("device_id") == device_id
-        assert saved.get("hr") == 72
+        assert saved.get("spo2") == 98
+        assert saved.get("heart_rate") == 72
+        # Also verify per-user mirror exists
+        user_saved = db.reference(f"/user_records/{override_user['uid']}/{record_key}").get()
+        assert user_saved is not None
         print("[tests] Verified record in DB:", saved)
 
         # 3) Fetch records via API and ensure our record is included
@@ -118,6 +122,7 @@ def test_records_flow_creates_and_cleans_up(client: TestClient, override_user):
         # Cleanup: delete the test record and device from the database
         if record_key:
             db.reference(f"/records/{record_key}").delete()
+            db.reference(f"/user_records/{override_user['uid']}/{record_key}").delete()
             print("[tests] Cleaned up record:", record_key)
         db.reference(f"/devices/{device_id}").delete()
         print("[tests] Cleaned up device:", device_id)

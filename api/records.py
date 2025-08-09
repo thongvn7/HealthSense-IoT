@@ -15,17 +15,45 @@ def verify_device(x_device_id: str = Header(...), x_device_secret: str = Header(
 
 @router.post("/")
 async def post_records(req: Request, device_id: str = Depends(verify_device)):
-    """Submit sensor data from devices"""
-    data = await req.json()
-    data["device_id"] = device_id
-    
-    # Get device owner (user_id) from device registry
+    """Submit sensor data from devices.
+
+    Expected payload from device: {"spo2": number, "heart_rate": number}
+    Server will stamp current timestamp (ms) and determine userId from device registry.
+    """
+    body = await req.json()
+
+    # Validate input fields (accept legacy 'hr' as alias for 'heart_rate')
+    spo2 = body.get("spo2")
+    heart_rate = body.get("heart_rate", body.get("hr"))
+    if spo2 is None or heart_rate is None:
+        raise HTTPException(400, "Missing spo2 or heart_rate")
+
+    # Determine user from device registry; do not trust user-provided user_id
     device_info = db.reference(f"/devices/{device_id}").get()
-    if device_info and "user_id" in device_info:
-        data["userId"] = device_info["user_id"]
-    
-    key = db.reference("/records").push(data).key
-    return {"status":"ok","key":key}
+    user_id = device_info.get("user_id") if device_info else None
+    if not user_id:
+        raise HTTPException(409, "Device is not yet registered to any user")
+
+    # Compose record and stamp server time
+    record = {
+        "userId": user_id,
+        "device_id": device_id,
+        "spo2": spo2,
+        "heart_rate": heart_rate,
+        "ts": int(time.time() * 1000),
+    }
+
+    # Generate key and perform fan-out write to both global and per-user paths
+    records_ref = db.reference("/records")
+    key = records_ref.push({"_tmp": True}).key  # reserve a key
+    root_ref = db.reference("/")
+    updates = {
+        f"records/{key}": record,
+        f"user_records/{user_id}/{key}": record,
+    }
+    root_ref.update(updates)
+
+    return {"status": "ok", "key": key}
 
 @router.get("/")
 async def get_records(
@@ -35,21 +63,18 @@ async def get_records(
     """Get user's health records"""
     user_id = user.get("uid")
     
-    # Query records for this user
-    records_ref = db.reference("/records")
+    # Query records for this user from per-user folder
+    user_records_ref = db.reference(f"/user_records/{user_id}")
     try:
         records = (
-            records_ref
-            .order_by_child("userId")
-            .equal_to(user_id)
+            user_records_ref
+            .order_by_child("ts")
             .limit_to_last(limit)
             .get()
         )
     except fa_exceptions.InvalidArgumentError:
         # Fallback when RTDB index is not defined in local/test environments
-        all_records = records_ref.get() or {}
-        filtered = {k: v for k, v in all_records.items() if isinstance(v, dict) and v.get("userId") == user_id}
-        records = filtered
+        records = user_records_ref.get() or {}
     
     if not records:
         return []

@@ -5,6 +5,8 @@ before initializing Firebase Admin SDK.
 """
 
 import os
+import json
+import base64
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -22,17 +24,35 @@ from .admin import router as admin_router
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(PROJECT_ROOT / ".env.local")
 
-# Initialize Firebase Admin (once)
-try:
-    cred_path = os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-    db_url = os.environ["FIREBASE_DB_URL"]
-except KeyError as missing:
-    raise RuntimeError(
-        f"Missing required environment variable: {missing.args[0]}. "
-        "Please set it in your .env.local or export it in the environment."
-    ) from None
+# Initialize Firebase Admin (once) using env var (no JSON file on disk)
+service_account_env = os.environ.get("FIREBASE_SERVICE_ACCOUNT")
+db_url = os.environ.get("FIREBASE_DB_URL")
 
-cred = credentials.Certificate(cred_path)
+if not db_url:
+    raise RuntimeError(
+        "Missing required environment variable: FIREBASE_DB_URL. "
+        "Please set it in your .env.local or export it in the environment."
+    )
+
+if not service_account_env:
+    raise RuntimeError(
+        "Missing required environment variable: FIREBASE_SERVICE_ACCOUNT. "
+        "Provide the raw JSON or a base64-encoded JSON of the Firebase service account."
+    )
+
+try:
+    # Accept either raw JSON or base64(JSON)
+    if service_account_env.strip().startswith("{"):
+        cred_info = json.loads(service_account_env)
+    else:
+        decoded = base64.b64decode(service_account_env).decode("utf-8")
+        cred_info = json.loads(decoded)
+except Exception as e:
+    raise RuntimeError(
+        "Invalid FIREBASE_SERVICE_ACCOUNT: must be JSON or base64 of JSON"
+    ) from e
+
+cred = credentials.Certificate(cred_info)
 initialize_app(cred, {"databaseURL": db_url})
 
 app = FastAPI()
