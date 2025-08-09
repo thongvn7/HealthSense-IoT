@@ -259,8 +259,18 @@ def _install_fake_firebase_module() -> None:
 @pytest.fixture(scope="session")
 def app_instance():
     """Import and return the FastAPI app after setting env vars."""
-    os.environ.setdefault("GOOGLE_APPLICATION_CREDENTIALS", "/tmp/dummy.json")
+    # Provide minimal env vars required by app import; tests use fake firebase module so these are placeholders
     os.environ.setdefault("FIREBASE_DB_URL", "https://dummy.local")
+    os.environ.setdefault("FIREBASE_TYPE", "service_account")
+    os.environ.setdefault("FIREBASE_PROJECT_ID", "dummy-project")
+    os.environ.setdefault("FIREBASE_PRIVATE_KEY_ID", "dummy-key-id")
+    os.environ.setdefault("FIREBASE_PRIVATE_KEY", "-----BEGIN PRIVATE KEY-----\\nABC\\n-----END PRIVATE KEY-----\\n")
+    os.environ.setdefault("FIREBASE_CLIENT_EMAIL", "dummy@dummy.iam.gserviceaccount.com")
+    os.environ.setdefault("FIREBASE_CLIENT_ID", "1234567890")
+    os.environ.setdefault("FIREBASE_AUTH_URI", "https://accounts.google.com/o/oauth2/auth")
+    os.environ.setdefault("FIREBASE_TOKEN_URI", "https://oauth2.googleapis.com/token")
+    os.environ.setdefault("FIREBASE_AUTH_PROVIDER_X509_CERT_URL", "https://www.googleapis.com/oauth2/v1/certs")
+    os.environ.setdefault("FIREBASE_CLIENT_X509_CERT_URL", "https://www.googleapis.com/robot/v1/metadata/x509/dummy")
 
     # Import after firebase_admin is faked
     from api.main import app  # type: ignore

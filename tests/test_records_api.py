@@ -24,10 +24,23 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 load_dotenv(PROJECT_ROOT / ".env.local")
 
-# Skip gracefully if required env vars are not present
-if not os.getenv("GOOGLE_APPLICATION_CREDENTIALS") or not os.getenv("FIREBASE_DB_URL"):
+# Skip gracefully if required env vars are not present for env-based service account
+required_env_vars = [
+    "FIREBASE_DB_URL",
+    "FIREBASE_TYPE",
+    "FIREBASE_PROJECT_ID",
+    "FIREBASE_PRIVATE_KEY_ID",
+    "FIREBASE_PRIVATE_KEY",
+    "FIREBASE_CLIENT_EMAIL",
+    "FIREBASE_CLIENT_ID",
+    "FIREBASE_AUTH_URI",
+    "FIREBASE_TOKEN_URI",
+    "FIREBASE_AUTH_PROVIDER_X509_CERT_URL",
+    "FIREBASE_CLIENT_X509_CERT_URL",
+]
+if any(not os.getenv(k) for k in required_env_vars):
     pytest.skip(
-        "Missing GOOGLE_APPLICATION_CREDENTIALS or FIREBASE_DB_URL; cannot run integration tests",
+        "Missing FIREBASE_* env vars; cannot run integration tests",
         allow_module_level=True,
     )
 

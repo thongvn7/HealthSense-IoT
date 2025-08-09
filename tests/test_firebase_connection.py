@@ -19,19 +19,24 @@ def main():
 
     print("Testing Firebase connection...")
     
-    # Initialize Firebase Admin SDK
+    # Initialize Firebase Admin SDK using env-based service account
     try:
-        # Get credentials from environment variable
-        cred_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
-        if not cred_path:
-            print("Error: GOOGLE_APPLICATION_CREDENTIALS environment variable not set")
-            print("Please set it to the path of your serviceAccountKey.json file")
-            sys.exit(1)
-        
-        print(f"Using credentials from: {cred_path}")
-        
-        cred = credentials.Certificate(cred_path)
-        app = initialize_app(cred)
+        private_key = os.environ.get("FIREBASE_PRIVATE_KEY")
+        if private_key:
+            private_key = private_key.replace("\\n", "\n")
+        service_account_info = {
+            "type": os.environ.get("FIREBASE_TYPE"),
+            "project_id": os.environ.get("FIREBASE_PROJECT_ID"),
+            "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
+            "private_key": private_key,
+            "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
+            "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
+            "auth_uri": os.environ.get("FIREBASE_AUTH_URI"),
+            "token_uri": os.environ.get("FIREBASE_TOKEN_URI"),
+            "auth_provider_x509_cert_url": os.environ.get("FIREBASE_AUTH_PROVIDER_X509_CERT_URL"),
+            "client_x509_cert_url": os.environ.get("FIREBASE_CLIENT_X509_CERT_URL"),
+        }
+        app = initialize_app(credentials.Certificate(service_account_info))  # type: ignore[arg-type]
         print("✓ Firebase Admin SDK initialized successfully")
         
         # Test listing users (just get the first few)
@@ -52,7 +57,7 @@ def main():
         print("\n✓ Firebase connection test completed successfully!")
         
     except FileNotFoundError:
-        print(f"Error: Credentials file not found at {cred_path}")
+        print("Error: Credentials file not found")
         sys.exit(1)
     except Exception as e:
         print(f"Error: {e}")

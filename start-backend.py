@@ -14,8 +14,20 @@ load_dotenv('.env.local')
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 if __name__ == "__main__":
-    # Check if required environment variables are set
-    required_env_vars = ["GOOGLE_APPLICATION_CREDENTIALS", "FIREBASE_DB_URL"]
+    # Check if required environment variables are set (env-based service account)
+    required_env_vars = [
+        "FIREBASE_DB_URL",
+        "FIREBASE_TYPE",
+        "FIREBASE_PROJECT_ID",
+        "FIREBASE_PRIVATE_KEY_ID",
+        "FIREBASE_PRIVATE_KEY",
+        "FIREBASE_CLIENT_EMAIL",
+        "FIREBASE_CLIENT_ID",
+        "FIREBASE_AUTH_URI",
+        "FIREBASE_TOKEN_URI",
+        "FIREBASE_AUTH_PROVIDER_X509_CERT_URL",
+        "FIREBASE_CLIENT_X509_CERT_URL",
+    ]
     missing_vars = [var for var in required_env_vars if not os.getenv(var)]
     
     if missing_vars:

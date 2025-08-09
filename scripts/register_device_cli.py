@@ -32,10 +32,23 @@ def load_environment() -> None:
     load_dotenv(project_root / ".env.local")
 
     missing: list[str] = []
-    if not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
-        missing.append("GOOGLE_APPLICATION_CREDENTIALS")
     if not os.getenv("FIREBASE_DB_URL"):
         missing.append("FIREBASE_DB_URL")
+    required_keys = [
+        "FIREBASE_TYPE",
+        "FIREBASE_PROJECT_ID",
+        "FIREBASE_PRIVATE_KEY_ID",
+        "FIREBASE_PRIVATE_KEY",
+        "FIREBASE_CLIENT_EMAIL",
+        "FIREBASE_CLIENT_ID",
+        "FIREBASE_AUTH_URI",
+        "FIREBASE_TOKEN_URI",
+        "FIREBASE_AUTH_PROVIDER_X509_CERT_URL",
+        "FIREBASE_CLIENT_X509_CERT_URL",
+    ]
+    for key in required_keys:
+        if not os.getenv(key):
+            missing.append(key)
     if missing:
         print("❌ Missing required environment variables:")
         for var in missing:
@@ -45,12 +58,24 @@ def load_environment() -> None:
 
 
 def ensure_firebase_initialized() -> None:
-    cred_path = os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-    db_url = os.environ["FIREBASE_DB_URL"]
+    db_url = os.environ["FIREBASE_DB_URL"].rstrip("/")
+
+    service_account_info = {
+        "type": os.environ.get("FIREBASE_TYPE"),
+        "project_id": os.environ.get("FIREBASE_PROJECT_ID"),
+        "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
+        "private_key": (os.environ.get("FIREBASE_PRIVATE_KEY") or "").replace("\\n", "\n"),
+        "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
+        "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
+        "auth_uri": os.environ.get("FIREBASE_AUTH_URI"),
+        "token_uri": os.environ.get("FIREBASE_TOKEN_URI"),
+        "auth_provider_x509_cert_url": os.environ.get("FIREBASE_AUTH_PROVIDER_X509_CERT_URL"),
+        "client_x509_cert_url": os.environ.get("FIREBASE_CLIENT_X509_CERT_URL"),
+    }
 
     # Initialize only once
     try:
-        initialize_app(credentials.Certificate(cred_path), {"databaseURL": db_url})
+        initialize_app(credentials.Certificate(service_account_info), {"databaseURL": db_url})
     except ValueError:
         # App already initialized
         pass
