@@ -32,6 +32,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Simulate ESP32 sending health data")
     parser.add_argument("--id", dest="device_id", required=True, help="Device ID")
     parser.add_argument("--secret", dest="device_secret", required=True, help="Device secret")
+    parser.add_argument("--user", dest="user_uid", required=True, help="User UID for this send")
     parser.add_argument("--server-url", default="http://localhost:8001", help="Server base URL")
     parser.add_argument("--interval", type=float, default=2.0, help="Seconds between samples")
     parser.add_argument("--count", type=int, default=0, help="Number of samples to send (0=infinite)")
@@ -56,6 +57,7 @@ def main() -> None:
     headers = {
         "x-device-id": args.device_id,
         "x-device-secret": args.device_secret,
+        "X-User-Id": args.user_uid,
         "Content-Type": "application/json",
     }
 

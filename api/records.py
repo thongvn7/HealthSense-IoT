@@ -14,7 +14,11 @@ def verify_device(x_device_id: str = Header(...), x_device_secret: str = Header(
     return x_device_id
 
 @router.post("/")
-async def post_records(req: Request, device_id: str = Depends(verify_device)):
+async def post_records(
+    req: Request,
+    device_id: str = Depends(verify_device),
+    x_user_id: Optional[str] = Header(default=None, alias="X-User-Id"),
+):
     """Submit sensor data from devices.
 
     Expected payload from device: {"spo2": number, "heart_rate": number}
@@ -28,11 +32,22 @@ async def post_records(req: Request, device_id: str = Depends(verify_device)):
     if spo2 is None or heart_rate is None:
         raise HTTPException(400, "Missing spo2 or heart_rate")
 
-    # Determine user from device registry; do not trust user-provided user_id
-    device_info = db.reference(f"/devices/{device_id}").get()
-    user_id = device_info.get("user_id") if device_info else None
-    if not user_id:
-        raise HTTPException(409, "Device is not yet registered to any user")
+    # Determine/validate user for this device
+    # If X-User-Id is provided, validate against multi-user mapping
+    if x_user_id:
+        allowed = db.reference(f"/device_users/{device_id}/{x_user_id}").get()
+        if not allowed:
+            # backward-compat: also allow legacy single binding if matches
+            legacy_user = db.reference(f"/devices/{device_id}/user_id").get()
+            if legacy_user != x_user_id:
+                raise HTTPException(401, "User not allowed for this device")
+        user_id = x_user_id
+    else:
+        # Backward-compat: fall back to legacy single user binding
+        device_info = db.reference(f"/devices/{device_id}").get()
+        user_id = device_info.get("user_id") if device_info else None
+        if not user_id:
+            raise HTTPException(409, "Device is not yet registered to any user")
 
     # Compose record and stamp server time
     record = {
