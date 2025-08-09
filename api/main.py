@@ -24,44 +24,48 @@ from .admin import router as admin_router
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(PROJECT_ROOT / ".env.local")
 
-# Initialize Firebase Admin (once) using env var (no JSON file on disk)
-service_account_env = os.environ.get("FIREBASE_SERVICE_ACCOUNT")
+# Initialize Firebase Admin using FIREBASE_* env vars as a dict
 db_url = os.environ.get("FIREBASE_DB_URL")
-
+if db_url:
+    db_url = db_url.rstrip("/")
 if not db_url:
-    raise RuntimeError(
-        "Missing required environment variable: FIREBASE_DB_URL. "
-        "Please set it in your .env.local or export it in the environment."
-    )
+    raise RuntimeError("Missing required environment variable: FIREBASE_DB_URL")
 
-if not service_account_env:
-    raise RuntimeError(
-        "Missing required environment variable: FIREBASE_SERVICE_ACCOUNT. "
-        "Provide the raw JSON or a base64-encoded JSON of the Firebase service account."
-    )
+private_key = os.environ.get("FIREBASE_PRIVATE_KEY")
+if private_key:
+    private_key = private_key.replace("\\n", "\n")
 
-try:
-    # Accept either raw JSON or base64(JSON)
-    if service_account_env.strip().startswith("{"):
-        cred_info = json.loads(service_account_env)
-    else:
-        decoded = base64.b64decode(service_account_env).decode("utf-8")
-        cred_info = json.loads(decoded)
-except Exception as e:
-    raise RuntimeError(
-        "Invalid FIREBASE_SERVICE_ACCOUNT: must be JSON or base64 of JSON"
-    ) from e
+service_account_info = {
+    "type": os.environ.get("FIREBASE_TYPE"),
+    "project_id": os.environ.get("FIREBASE_PROJECT_ID"),
+    "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
+    "private_key": private_key,
+    "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
+    "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
+    "auth_uri": os.environ.get("FIREBASE_AUTH_URI"),
+    "token_uri": os.environ.get("FIREBASE_TOKEN_URI"),
+    "auth_provider_x509_cert_url": os.environ.get("FIREBASE_AUTH_PROVIDER_X509_CERT_URL"),
+    "client_x509_cert_url": os.environ.get("FIREBASE_CLIENT_X509_CERT_URL"),
+}
 
-# Persist credentials to a secure temp file and initialize from file path
-with tempfile.NamedTemporaryFile("w", delete=False, suffix=".json") as tmp:
-    json.dump(cred_info, tmp)
-    tmp.flush()
-    cred_file_path = tmp.name
+# Validate necessary keys
+required_keys = [
+    "type",
+    "project_id",
+    "private_key_id",
+    "private_key",
+    "client_email",
+    "client_id",
+    "auth_uri",
+    "token_uri",
+    "auth_provider_x509_cert_url",
+    "client_x509_cert_url",
+]
+missing = [k for k in required_keys if not service_account_info.get(k)]
+if missing:
+    raise RuntimeError("Missing Firebase service account env vars: " + ", ".join(missing))
 
-# Expose the path for compatibility with other tools/code
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = cred_file_path
-
-cred = credentials.Certificate(cred_file_path)
+cred = credentials.Certificate(service_account_info)  # type: ignore[arg-type]
 initialize_app(cred, {"databaseURL": db_url})
 
 app = FastAPI()
