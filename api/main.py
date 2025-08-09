@@ -14,7 +14,6 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from firebase_admin import credentials, initialize_app
-from mangum import Mangum
 
 from .records import router as records_router
 from .command import router as command_router
@@ -79,5 +78,4 @@ app.include_router(command_router)
 app.include_router(auth_router)
 app.include_router(admin_router)
 
-# Handler for Vercel
-handler = Mangum(app)
+# Note: On Vercel Python runtime, export ASGI app as `app` (no Mangum wrapper needed)
