@@ -6,7 +6,9 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult
 } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 
@@ -27,6 +29,18 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe
   }, [])
 
+  // Handle redirect result (fallback path for environments where popup is blocked)
+  useEffect(() => {
+    getRedirectResult(auth).catch((err) => {
+      // Useful diagnostics on production when Google popup closes immediately
+      // Common codes: auth/unauthorized-domain, auth/popup-blocked, auth/popup-closed-by-user
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.warn('getRedirectResult error:', err?.code, err?.message)
+      }
+    })
+  }, [])
+
   // Đăng nhập bằng email/password
   const login = async (email, password) => {
     return signInWithEmailAndPassword(auth, email, password)
@@ -40,7 +54,23 @@ export const AuthProvider = ({ children }) => {
   // Đăng nhập bằng Google
   const loginWithGoogle = async () => {
     const provider = new GoogleAuthProvider()
-    return signInWithPopup(auth, provider)
+    provider.setCustomParameters({ prompt: 'select_account' })
+    try {
+      return await signInWithPopup(auth, provider)
+    } catch (err) {
+      const code = err?.code || ''
+      // Fallback to redirect for environments where popup is blocked/unsupported
+      if (
+        code === 'auth/popup-blocked' ||
+        code === 'auth/popup-closed-by-user' ||
+        code === 'auth/operation-not-supported-in-this-environment' ||
+        code === 'auth/unauthorized-domain'
+      ) {
+        await signInWithRedirect(auth, provider)
+        return
+      }
+      throw err
+    }
   }
 
   // Đăng xuất
