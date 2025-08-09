@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
 """
-Simulate an ESP32 device sending continuous health data to the server.
+Simulate an ESP32 device sending continuous health data to the server (send-only).
 
 Behavior:
-- Optionally provision the device (create/update /devices/{id} with secret and user_id)
 - Send periodic POST requests to /api/records/ with headers x-device-id/x-device-secret
 - Payload contains spo2 and heart_rate; server stamps timestamp and userId
 
 Examples:
-  Interactive-like (with defaults):
-    python scripts/simulate_device.py --id dev123 --secret s123 --user uid_abc --provision
-
   Send 10 samples at 1.5s interval to a custom server URL:
-    python scripts/simulate_device.py --id dev123 --secret s123 --user uid_abc \
-      --count 10 --interval 1.5 --server-url http://localhost:8001 --provision
+    python scripts/simulate_device.py --id dev123 --secret s123 \
+      --count 10 --interval 1.5 --server-url http://localhost:8001
 """
 
 from __future__ import annotations
@@ -29,90 +25,13 @@ import requests
 from dotenv import load_dotenv
 
 
-def load_env_for_provision() -> None:
-    """Load .env.local and validate required vars for provisioning via Admin SDK."""
-    project_root = Path(__file__).resolve().parents[1]
-    load_dotenv(project_root / ".env.local")
-    missing: list[str] = []
-    if not os.getenv("FIREBASE_DB_URL"):
-        missing.append("FIREBASE_DB_URL")
-    # Validate required Firebase service account env vars
-    required_keys = [
-        "FIREBASE_TYPE",
-        "FIREBASE_PROJECT_ID",
-        "FIREBASE_PRIVATE_KEY_ID",
-        "FIREBASE_PRIVATE_KEY",
-        "FIREBASE_CLIENT_EMAIL",
-        "FIREBASE_CLIENT_ID",
-        "FIREBASE_AUTH_URI",
-        "FIREBASE_TOKEN_URI",
-        "FIREBASE_AUTH_PROVIDER_X509_CERT_URL",
-        "FIREBASE_CLIENT_X509_CERT_URL",
-    ]
-    for key in required_keys:
-        if not os.getenv(key):
-            missing.append(key)
-    if missing:
-        print("❌ Missing required env vars for provisioning:")
-        for var in missing:
-            print(f"   - {var}")
-        print("Please set them in .env.local or export them in your environment.")
-        sys.exit(1)
-
-
-def ensure_provisioned(device_id: str, device_secret: str, user_uid: str, force: bool) -> None:
-    """Ensure device exists and is bound to the user using Admin SDK (service account)."""
-    from firebase_admin import credentials, db, initialize_app  # lazy import
-
-    # Initialize Admin SDK (idempotent) using env-based service account info
-    db_url = os.environ["FIREBASE_DB_URL"].rstrip("/")
-    service_account_info = {
-        "type": os.environ.get("FIREBASE_TYPE"),
-        "project_id": os.environ.get("FIREBASE_PROJECT_ID"),
-        "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
-        "private_key": (os.environ.get("FIREBASE_PRIVATE_KEY") or "").replace("\\n", "\n"),
-        "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
-        "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
-        "auth_uri": os.environ.get("FIREBASE_AUTH_URI"),
-        "token_uri": os.environ.get("FIREBASE_TOKEN_URI"),
-        "auth_provider_x509_cert_url": os.environ.get("FIREBASE_AUTH_PROVIDER_X509_CERT_URL"),
-        "client_x509_cert_url": os.environ.get("FIREBASE_CLIENT_X509_CERT_URL"),
-    }
-    try:
-        initialize_app(credentials.Certificate(service_account_info), {"databaseURL": db_url})
-    except ValueError:
-        # App already initialized
-        pass
-
-    ref = db.reference(f"/devices/{device_id}")
-    existing = ref.get()
-    if existing and not force:
-        # If exists but belongs to another user, warn and abort unless --force
-        existing_user = existing.get("user_id")
-        if existing_user and existing_user != user_uid:
-            print(
-                f"⚠️  Device '{device_id}' already registered to another user: {existing_user}.\n"
-                "Use --force to overwrite if you are sure."
-            )
-            sys.exit(1)
-
-    payload = {
-        "secret": device_secret,
-        "user_id": user_uid,
-        "registered_at": existing.get("registered_at") if isinstance(existing, dict) else None,
-    }
-    if not payload["registered_at"]:
-        payload["registered_at"] = int(time.time() * 1000)
-
-    ref.set(payload)
-    print("✅ Provisioned device:", device_id, payload)
+    # send-only script: no provisioning here
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Simulate ESP32 sending health data")
     parser.add_argument("--id", dest="device_id", required=True, help="Device ID")
     parser.add_argument("--secret", dest="device_secret", required=True, help="Device secret")
-    parser.add_argument("--user", dest="user_uid", required=True, help="User UID bound to device")
     parser.add_argument("--server-url", default="http://localhost:8001", help="Server base URL")
     parser.add_argument("--interval", type=float, default=2.0, help="Seconds between samples")
     parser.add_argument("--count", type=int, default=0, help="Number of samples to send (0=infinite)")
@@ -120,20 +39,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--spo2-max", type=int, default=100, help="Max SpO2")
     parser.add_argument("--hr-min", type=int, default=60, help="Min heart rate")
     parser.add_argument("--hr-max", type=int, default=100, help="Max heart rate")
-    parser.add_argument("--provision", action="store_true", help="Provision device before sending")
-    parser.add_argument("--force", action="store_true", help="Force overwrite during provisioning")
     parser.add_argument("--seed", type=int, default=None, help="Random seed for reproducibility")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    if args.provision:
-        load_env_for_provision()
-        ensure_provisioned(args.device_id, args.device_secret, args.user_uid, args.force)
-    else:
-        # Still load .env.local to allow custom config in future; not required for sending
-        load_dotenv(Path(__file__).resolve().parents[1] / ".env.local")
+    # Load .env.local (optional; not required for sending)
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env.local")
 
     if args.seed is not None:
         random.seed(args.seed)
