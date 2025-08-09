@@ -7,6 +7,7 @@ before initializing Firebase Admin SDK.
 import os
 import json
 import base64
+import tempfile
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -52,7 +53,16 @@ except Exception as e:
         "Invalid FIREBASE_SERVICE_ACCOUNT: must be JSON or base64 of JSON"
     ) from e
 
-cred = credentials.Certificate(cred_info)
+# Persist credentials to a secure temp file and initialize from file path
+with tempfile.NamedTemporaryFile("w", delete=False, suffix=".json") as tmp:
+    json.dump(cred_info, tmp)
+    tmp.flush()
+    cred_file_path = tmp.name
+
+# Expose the path for compatibility with other tools/code
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = cred_file_path
+
+cred = credentials.Certificate(cred_file_path)
 initialize_app(cred, {"databaseURL": db_url})
 
 app = FastAPI()
