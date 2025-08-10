@@ -13,6 +13,7 @@ def verify_device(x_device_id: str = Header(...), x_device_secret: str = Header(
         raise HTTPException(401, "Unauthorized")
     return x_device_id
 
+@router.post("")
 @router.post("/")
 async def post_records(
     req: Request,
@@ -70,6 +71,7 @@ async def post_records(
 
     return {"status": "ok", "key": key}
 
+@router.get("")
 @router.get("/")
 async def get_records(
     user = Depends(verify_firebase_token),
@@ -105,6 +107,19 @@ async def get_records(
     
     # Trim to requested limit after sorting (in case of fallback path)
     return records_list[:limit]
+
+@router.get("/check-auth")
+async def check_records_auth(user = Depends(verify_firebase_token)):
+    """Lightweight endpoint to validate Authorization header on the same router.
+
+    Returns minimal info so frontend can diagnose auth forwarding issues
+    specific to the `/api/records` router.
+    """
+    return {
+        "ok": True,
+        "uid": user.get("uid"),
+        "email": user.get("email"),
+    }
 
 @router.post("/device/register")
 async def register_device(req: Request, user = Depends(verify_firebase_token)):
