@@ -7,12 +7,14 @@ export default function StatsCards({ records, rangeHours, loading = false }) {
   const cutoffMs = nowMs - rangeHours * 3600 * 1000
   const filtered = (records || []).filter((r) => toMs(r.ts) >= cutoffMs)
 
-  const avgBpm = filtered.length > 0
+  const hasData = filtered.length > 0
+  const avgBpm = hasData
     ? Math.round(filtered.reduce((sum, r) => sum + (r.heart_rate ?? r.bpm ?? 0), 0) / filtered.length)
-    : 0
-  const avgSpo2 = filtered.length > 0
+    : null
+  const avgSpo2 = hasData
     ? Math.round((filtered.reduce((sum, r) => sum + (r.spo2 ?? 0), 0) / filtered.length) * 10) / 10
-    : 0
+    : null
+  const last = hasData ? filtered[0] : null
 
   if (loading) {
     return (
@@ -51,10 +53,18 @@ export default function StatsCards({ records, rangeHours, loading = false }) {
           <div className="stat-icon">❤️</div>
           <div className="stat-content">
             <div className="stat-value-row">
-              <div className="stat-value" data-value={avgBpm}>0</div>
-              <span className="stat-unit">BPM</span>
+              {hasData ? (
+                <>
+                  <div className="stat-value" data-value={avgBpm}>{avgBpm}</div>
+                  <span className="stat-unit">BPM</span>
+                </>
+              ) : (
+                <div className="stat-empty">—</div>
+              )}
             </div>
-            <div className="stat-label">Nhịp tim trung bình</div>
+            <div className="stat-label">
+              {hasData ? 'Nhịp tim trung bình' : `Chưa đủ dữ liệu trong ${rangeHours}h`}
+            </div>
           </div>
         </AnimatedElement>
 
@@ -62,10 +72,16 @@ export default function StatsCards({ records, rangeHours, loading = false }) {
           <div className="stat-icon">🫁</div>
           <div className="stat-content">
             <div className="stat-value-row">
-              <div className="stat-value" data-value={avgSpo2}>0</div>
-              <span className="stat-unit">%</span>
+              {hasData ? (
+                <>
+                  <div className="stat-value" data-value={avgSpo2}>{avgSpo2}</div>
+                  <span className="stat-unit">%</span>
+                </>
+              ) : (
+                <div className="stat-empty">—</div>
+              )}
             </div>
-            <div className="stat-label">SpO₂ trung bình</div>
+            <div className="stat-label">{hasData ? 'SpO₂ trung bình' : `Chưa đủ dữ liệu trong ${rangeHours}h`}</div>
           </div>
         </AnimatedElement>
 
@@ -97,6 +113,7 @@ export default function StatsCards({ records, rangeHours, loading = false }) {
         .stat-value { font-size: 1.8rem; font-weight: 700; color: #333; display: inline-block; }
         .stat-unit { color: #6b7280; font-weight: 600; }
         .stat-label { color: #666; font-size: 0.9rem; }
+        .stat-empty { font-size: 1.8rem; font-weight: 700; color: #9ca3af; }
         @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } }
       `}</style>
     </>

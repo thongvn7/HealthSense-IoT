@@ -68,13 +68,13 @@ export default function Spo2Chart({ records, rangeHours }) {
       }
     },
     plugins: {
-      legend: { display: true, position: 'top' },
+      legend: { display: false },
       tooltip: {
         mode: 'index',
         intersect: false,
         callbacks: {
           title: (items) => items?.[0]?.label || '',
-          label: (item) => `${item.dataset.label}: ${item.formattedValue}`
+          label: (item) => `SpO₂: ${item.formattedValue} %`
         }
       }
     }
@@ -84,6 +84,7 @@ export default function Spo2Chart({ records, rangeHours }) {
     <div className="chart-container">
       <div className="chart-header">
         <h3 className="chart-title">🫁 SpO₂ (%)</h3>
+        <div className="chart-meta">Min/Max/Avg/Last</div>
       </div>
       {filtered.length > 0 ? (
         <div style={{ height: 360 }}>
@@ -96,6 +97,10 @@ export default function Spo2Chart({ records, rangeHours }) {
           <p>Chưa có dữ liệu SpO₂ trong khoảng thời gian này.</p>
         </div>
       )}
+      <style jsx>{`
+        .chart-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.5rem; }
+        .chart-meta { color: #6b7280; font-size: 0.85rem; }
+      `}</style>
     </div>
   )
 }

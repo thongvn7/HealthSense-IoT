@@ -133,7 +133,10 @@ export default function Dashboard() {
         {/* Health Insights */}
         {filtered.length > 0 && (
           <div className="insights">
-            <h3>📋 Nhận xét sức khỏe</h3>
+            <div className="insights-header">
+              <h3>📋 Nhận xét sức khỏe</h3>
+              <div className="insights-meta">Dựa trên {range} giờ gần nhất • Cập nhật lúc {new Date().toLocaleTimeString()}</div>
+            </div>
             <div className="insights-grid">
               <div className="insight-card">
                 <h4>Nhịp tim</h4>
@@ -392,6 +395,9 @@ export default function Dashboard() {
           color: #333;
           margin-bottom: 1.5rem;
         }
+
+        .insights-header { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+        .insights-meta { color: #6b7280; font-size: 0.9rem; }
 
         .insights-grid {
           display: grid;
