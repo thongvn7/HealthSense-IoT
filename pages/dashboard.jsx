@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useAdmin } from '../contexts/AdminContext'
 import { useRouter } from 'next/router'
-import { ref, onValue, query, orderByChild, equalTo } from 'firebase/database'
-import { database } from '../lib/firebase'
+import axios from 'axios'
+import useRecords from '../hooks/useRecords'
+import RecordsChart from '../components/RecordsChart'
+import StatsCards from '../components/StatsCards'
+import TimeRangeControls from '../components/TimeRangeControls'
 import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -33,9 +36,8 @@ export default function Dashboard() {
   const { user, loading, logout } = useAuth()
   const { isAdmin } = useAdmin()
   const router = useRouter()
-  const [records, setRecords] = useState([])
   const [range, setRange] = useState(24) // hours
-  const [dataLoading, setDataLoading] = useState(true)
+  const { records, loading: dataLoading } = useRecords({ limit: 1000, pollMs: 15000 })
   const { animate } = useAnime()
 
   // Redirect if not authenticated
@@ -45,38 +47,7 @@ export default function Dashboard() {
     }
   }, [user, loading, router])
 
-  // Fetch user's health data
-  useEffect(() => {
-    if (!user) return
-
-    setDataLoading(true)
-    
-    // Query records for current user
-    const recordsRef = ref(database, 'records')
-    const userRecordsQuery = query(
-      recordsRef,
-      orderByChild('userId'),
-      equalTo(user.uid)
-    )
-
-    const unsubscribe = onValue(userRecordsQuery, (snapshot) => {
-      const data = snapshot.val()
-      if (data) {
-        const recordsArray = Object.entries(data).map(([key, value]) => ({
-          id: key,
-          ...value
-        }))
-        // Sort by timestamp descending
-        recordsArray.sort((a, b) => (b.ts || 0) - (a.ts || 0))
-        setRecords(recordsArray)
-      } else {
-        setRecords([])
-      }
-      setDataLoading(false)
-    })
-
-    return () => unsubscribe()
-  }, [user])
+  // Records fetching is handled by useRecords
 
   const handleLogout = async () => {
     try {
@@ -111,94 +82,22 @@ export default function Dashboard() {
     return null // Will redirect
   }
 
-  // Filter records by time range
-  const now = Date.now() / 1000
-  const cutoff = now - range * 3600
-  const filtered = records.filter(r => (r.ts || 0) >= cutoff)
+  // Calculate filtered records and averages for Health Insights
+  const toMs = (ts) => (!ts ? 0 : ts < 1e12 ? ts * 1000 : ts)
+  const nowMs = Date.now()
+  const cutoffMs = nowMs - range * 3600 * 1000
+  const filtered = (records || []).filter((r) => toMs(r.ts) >= cutoffMs)
 
-  // Prepare chart data
-  const labels = filtered.map(r => new Date((r.ts || 0) * 1000))
-  const chartData = {
-    labels,
-    datasets: [
-      {
-        label: 'Nhịp tim (BPM)',
-        data: filtered.map(r => r.bpm || 0),
-        borderColor: '#ff6b6b',
-        backgroundColor: 'rgba(255, 107, 107, 0.1)',
-        yAxisID: 'y1',
-        tension: 0.4
-      },
-      {
-        label: 'SpO₂ (%)',
-        data: filtered.map(r => r.spo2 || 0),
-        borderColor: '#4ecdc4',
-        backgroundColor: 'rgba(78, 205, 196, 0.1)',
-        yAxisID: 'y2',
-        tension: 0.4
-      }
-    ]
-  }
-
-  const chartOptions = {
-    responsive: true,
-    interaction: {
-      mode: 'index',
-      intersect: false,
-    },
-    scales: {
-      x: {
-        type: 'time',
-        time: {
-          unit: range <= 24 ? 'hour' : range <= 168 ? 'day' : 'week'
-        },
-        title: {
-          display: true,
-          text: 'Thời gian'
-        }
-      },
-      y1: {
-        type: 'linear',
-        position: 'left',
-        title: {
-          display: true,
-          text: 'Nhịp tim (BPM)'
-        },
-        min: 50,
-        max: 120
-      },
-      y2: {
-        type: 'linear',
-        position: 'right',
-        title: {
-          display: true,
-          text: 'SpO₂ (%)'
-        },
-        min: 90,
-        max: 100,
-        grid: {
-          drawOnChartArea: false,
-        },
-      }
-    },
-    plugins: {
-      title: {
-        display: true,
-        text: 'Biểu đồ theo dõi sức khỏe'
-      },
-      legend: {
-        display: true,
-        position: 'top'
-      }
-    }
-  }
-
-  // Calculate average values
-  const avgBpm = filtered.length > 0 
-    ? Math.round(filtered.reduce((sum, r) => sum + (r.bpm || 0), 0) / filtered.length)
+  const avgBpm = filtered.length > 0
+    ? Math.round(
+        filtered.reduce((sum, r) => sum + (r.heart_rate ?? r.bpm ?? 0), 0) /
+          filtered.length
+      )
     : 0
   const avgSpo2 = filtered.length > 0
-    ? Math.round(filtered.reduce((sum, r) => sum + (r.spo2 || 0), 0) / filtered.length * 10) / 10
+    ? Math.round(
+        (filtered.reduce((sum, r) => sum + (r.spo2 ?? 0), 0) / filtered.length) * 10
+      ) / 10
     : 0
 
   return (
@@ -234,77 +133,19 @@ export default function Dashboard() {
 
       <div className="container">
         {/* Stats Cards */}
-        <div className="stats-grid">
-          <AnimatedElement animation="fadeInUp" delay={100} className="stat-card">
-            <div className="stat-icon">❤️</div>
-            <div className="stat-content">
-              <div className="stat-value" data-value={avgBpm}>0</div> BPM
-              <div className="stat-label">Nhịp tim trung bình</div>
-            </div>
-          </AnimatedElement>
-          
-          <AnimatedElement animation="fadeInUp" delay={200} className="stat-card">
-            <div className="stat-icon">🫁</div>
-            <div className="stat-content">
-              <div className="stat-value" data-value={avgSpo2}>0</div>%
-              <div className="stat-label">SpO₂ trung bình</div>
-            </div>
-          </AnimatedElement>
-          
-          <div className="stat-card">
-            <div className="stat-icon">📊</div>
-            <div className="stat-content">
-              <div className="stat-value">{filtered.length}</div>
-              <div className="stat-label">Số lần đo</div>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">⏱️</div>
-            <div className="stat-content">
-              <div className="stat-value">{range}h</div>
-              <div className="stat-label">Khoảng thời gian</div>
-            </div>
-          </div>
-        </div>
+        <StatsCards records={records} rangeHours={range} />
 
         {/* Time Range Selector */}
-        <div className="controls">
-          <div className="time-range">
-            <span>Khoảng thời gian:</span>
-            {[
-              { label: '24 giờ', val: 24 },
-              { label: '7 ngày', val: 24 * 7 },
-              { label: '30 ngày', val: 24 * 30 }
-            ].map(btn => (
-              <button
-                key={btn.val}
-                onClick={() => setRange(btn.val)}
-                className={`btn-range ${range === btn.val ? 'active' : ''}`}
-              >
-                {btn.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <TimeRangeControls range={range} setRange={setRange} />
 
         {/* Chart */}
-        <div className="chart-container">
-          {dataLoading ? (
-            <div className="chart-loading">
-              <div>Đang tải dữ liệu...</div>
-            </div>
-          ) : filtered.length > 0 ? (
-            <Line data={chartData} options={chartOptions} />
-          ) : (
-            <div className="no-data">
-              <div className="no-data-icon">📈</div>
-              <h3>Chưa có dữ liệu</h3>
-              <p>Chưa có dữ liệu sức khỏe trong khoảng thời gian này.</p>
-              <p>Hãy kết nối thiết bị ESP32 để bắt đầu thu thập dữ liệu.</p>
-            </div>
-          )}
-        </div>
+        {dataLoading ? (
+          <div className="chart-loading">
+            <div>Đang tải dữ liệu...</div>
+          </div>
+        ) : (
+          <RecordsChart records={records} rangeHours={range} />
+        )}
 
         {/* Health Insights */}
         {filtered.length > 0 && (
