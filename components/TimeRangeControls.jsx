@@ -15,6 +15,8 @@ export default function TimeRangeControls({ range, setRange }) {
             key={btn.val}
             onClick={() => setRange(btn.val)}
             className={`btn-range ${range === btn.val ? 'active' : ''}`}
+            aria-pressed={range === btn.val}
+            aria-label={`Chọn ${btn.label}`}
           >
             {btn.label}
           </button>

@@ -1,34 +1,22 @@
-import { useEffect, useRef } from 'react'
-import { useAnime } from '../hooks/useAnime.jsx'
-
 const LoadingSpinner = ({ size = 'medium', color = '#0070f3' }) => {
-  const spinnerRef = useRef(null)
-  const { animate } = useAnime()
-
-  useEffect(() => {
-    if (spinnerRef.current) {
-      animate(spinnerRef.current, {
-        rotate: '360deg',
-        duration: 1000,
-        easing: 'linear',
-        loop: true
-      })
-    }
-  }, [animate])
-
-  const sizeClasses = {
-    small: 'w-6 h-6',
-    medium: 'w-8 h-8',
-    large: 'w-12 h-12'
-  }
+  const sizePx = { small: 24, medium: 32, large: 48 }
+  const dimension = sizePx[size] || sizePx.medium
 
   return (
-    <div className="flex items-center justify-center">
-      <div
-        ref={spinnerRef}
-        className={`${sizeClasses[size]} border-4 border-gray-200 border-t-current rounded-full`}
-        style={{ borderTopColor: color }}
-      />
+    <div className="spinner-wrap">
+      <div className="spinner" />
+      <style jsx>{`
+        .spinner-wrap { display: flex; align-items: center; justify-content: center; }
+        .spinner {
+          width: ${dimension}px;
+          height: ${dimension}px;
+          border: 4px solid #e5e7eb;
+          border-top-color: ${color};
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   )
 }

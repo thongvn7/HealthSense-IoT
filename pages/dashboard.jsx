@@ -2,35 +2,14 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useAdmin } from '../contexts/AdminContext'
 import { useRouter } from 'next/router'
-import axios from 'axios'
 import useRecords from '../hooks/useRecords'
-import RecordsChart from '../components/RecordsChart'
+import HeartRateChart from '../components/HeartRateChart'
+import Spo2Chart from '../components/Spo2Chart'
 import StatsCards from '../components/StatsCards'
 import TimeRangeControls from '../components/TimeRangeControls'
-import { Line } from 'react-chartjs-2'
-import {
-  Chart as ChartJS,
-  TimeScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js'
-import 'chartjs-adapter-date-fns'
 import AnimatedElement from '../components/AnimatedElement'
+import LoadingSpinner from '../components/LoadingSpinner'
 import { useAnime } from '../hooks/useAnime.jsx'
-
-ChartJS.register(
-  TimeScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-)
 
 export default function Dashboard() {
   const { user, loading, logout } = useAuth()
@@ -133,7 +112,7 @@ export default function Dashboard() {
 
       <div className="container">
         {/* Stats Cards */}
-        <StatsCards records={records} rangeHours={range} />
+        <StatsCards records={records} rangeHours={range} loading={dataLoading} />
 
         {/* Time Range Selector */}
         <TimeRangeControls range={range} setRange={setRange} />
@@ -141,10 +120,14 @@ export default function Dashboard() {
         {/* Chart */}
         {dataLoading ? (
           <div className="chart-loading">
-            <div>Đang tải dữ liệu...</div>
+            <LoadingSpinner size="large" color="#0070f3" />
+            <div style={{ marginTop: '0.75rem' }}>Đang tải dữ liệu...</div>
           </div>
         ) : (
-          <RecordsChart records={records} rangeHours={range} />
+          <div className="charts-grid">
+            <HeartRateChart records={records} rangeHours={range} />
+            <Spo2Chart records={records} rangeHours={range} />
+          </div>
         )}
 
         {/* Health Insights */}
@@ -277,10 +260,17 @@ export default function Dashboard() {
           background: white;
           padding: 1.5rem;
           border-radius: 12px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          box-shadow: 0 2px 4px rgba(0,0,0,0.08);
           display: flex;
           align-items: center;
           gap: 1rem;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          border: 1px solid #eef0f2;
+        }
+
+        .stat-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(0,0,0,0.12);
         }
 
         .stat-icon {
@@ -301,10 +291,13 @@ export default function Dashboard() {
 
         .controls {
           background: white;
-          padding: 1.5rem;
+          padding: 1rem 1.25rem;
           border-radius: 12px;
           box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-          margin-bottom: 2rem;
+          margin-bottom: 1.5rem;
+          position: sticky;
+          top: 0.5rem;
+          z-index: 5;
         }
 
         .time-range {
@@ -323,35 +316,52 @@ export default function Dashboard() {
           background: #f8f9fa;
           border: 1px solid #dee2e6;
           color: #495057;
-          padding: 0.5rem 1rem;
-          border-radius: 6px;
+          padding: 0.45rem 0.9rem;
+          border-radius: 999px;
           cursor: pointer;
-          transition: all 0.3s;
+          transition: all 0.2s ease;
         }
 
         .btn-range:hover {
           background: #e9ecef;
+          transform: translateY(-1px);
         }
 
         .btn-range.active {
           background: #0070f3;
           color: white;
           border-color: #0070f3;
+          box-shadow: 0 4px 12px rgba(0,112,243,0.25);
         }
 
         .chart-container {
           background: white;
-          padding: 2rem;
+          padding: 1rem 1rem 0.5rem 1rem;
           border-radius: 12px;
           box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          min-height: 420px;
+        }
+
+        .charts-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
           margin-bottom: 2rem;
+        }
+
+        .chart-title {
+          margin: 0 0 0.5rem 0;
+          color: #333;
+          font-size: 1.1rem;
+          font-weight: 600;
         }
 
         .chart-loading {
           display: flex;
           justify-content: center;
           align-items: center;
-          height: 400px;
+          flex-direction: column;
+          height: 420px;
           color: #666;
         }
 
@@ -424,7 +434,31 @@ export default function Dashboard() {
           .insights-grid {
             grid-template-columns: 1fr;
           }
+
+          .charts-grid {
+            grid-template-columns: 1fr;
+          }
         }
+
+        /* Skeleton Loading */
+        .skeleton {
+          position: relative;
+          overflow: hidden;
+          background-color: #eef1f4;
+          border-radius: 6px;
+        }
+        .skeleton::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          transform: translateX(-100%);
+          background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.6), rgba(255,255,255,0));
+          animation: shimmer 1.2s infinite;
+        }
+        .skel-icon { width: 2.5rem; height: 2.5rem; border-radius: 999px; }
+        .skel-line-lg { width: 60%; height: 22px; margin-bottom: 8px; }
+        .skel-line-sm { width: 40%; height: 12px; }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
       `}</style>
     </div>
   )
