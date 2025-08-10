@@ -84,7 +84,9 @@ export default function Spo2Chart({ records, rangeHours }) {
     <div className="chart-container">
       <div className="chart-header">
         <h3 className="chart-title">🫁 SpO₂ (%)</h3>
-        <div className="chart-meta">Min/Max/Avg/Last</div>
+        <div className="chart-meta">
+          Min: {minSpo2}{minSpo2 !== '-' ? ' %' : ''} / Max: {maxSpo2}{maxSpo2 !== '-' ? ' %' : ''} / Avg: {avgSpo2 !== '-' ? avgSpo2.toFixed(1) + ' %' : '-'} / Last: {lastSpo2}{lastSpo2 !== '-' ? ' %' : ''}
+        </div>
       </div>
       {filtered.length > 0 ? (
         <div style={{ height: 360 }}>
